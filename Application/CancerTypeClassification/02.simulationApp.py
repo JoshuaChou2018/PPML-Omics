@@ -421,12 +421,7 @@ def Train(logger,
 
                 # initial clientModel
                 clientModel = initialClientModel(serverModel, device=device)
-                if mode=='SGD':
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                else:
-                    torch.nn.utils.clip_grad_norm_(clientModel.parameters(), l2_norm_clip,norm_type=2)
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                    #optimizer = DPSGD(l2_norm_clip=l2_norm_clip,params=clientModel.parameters(),lr=lr)
+                optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
                 clientModel.train()
 
                 with tqdm(total=len(trainLoader)) as t:
