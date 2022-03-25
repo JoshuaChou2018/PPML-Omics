@@ -389,58 +389,7 @@ def Train(logger,
         logger.info('Epoch {}/{}'.format(epoch+1, num_epochs))
 
         # features = []
-        if shuffle_model==False:
-
-            for client_idx in range(numberClients):
-                logger.info('client id {}'.format(client_idx))
-                trainLoader=trainLoaders[client_idx]
-
-                # initial clientModel
-                clientModel = initialClientModel(serverModel, device=device)
-                if mode=='SGD':
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                else:
-                    torch.nn.utils.clip_grad_norm_(clientModel.parameters(), l2_norm_clip, norm_type=2)
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                clientModel.train()
-
-                with tqdm(total=len(trainLoader)) as t:
-                    for genes, label in tqdm(trainLoader):
-                        genes, label = genes.to(device), label.to(device)
-
-                        #serverModel.zero_grad()
-                        #pred = serverModel(genes)
-                        clientModel.zero_grad()
-
-                        feat, out  = clientModel(genes)
-
-                        loss = criterion(genes, out.float())
-                        loss.backward()
-                        optimizer.step()
-                        loss_avg.update(loss.item())
-                        # statistics
-
-                        # features += list(feat.detach().cpu().numpy())
-                        t.set_postfix(
-                                      loss_avg='{:05.10f}'.format(loss_avg()),
-                                      total_loss='{:05.10f}'.format(loss.item()),
-                                      )
-                        t.update()
-
-                #serverModel=clientModel
-                # calculate grad update
-                grads=compute_grad_update(serverModel, clientModel,lr,device)
-
-                # update to serverModel
-                serverModel = updateServerModel(serverModel,
-                                                grads,
-                                                mode=mode,
-                                                lr=lr,
-                                                device=device,
-                                                epsilon=epsilon,
-                                                delta=delta)
-
-        elif shuffle_model==True:
+        if True:
 
             client_Model_list = []
 
@@ -480,9 +429,9 @@ def Train(logger,
                 logger.info("Length of model list: {}".format(len(client_Model_list)))
 
             # Shuffle the client_Model_list
-
-            logger.info("=> Shuffling the client model")
-            random.shuffle(client_Model_list)
+            if shuffle_model == True:
+                logger.info("=> Shuffling the client model")
+                random.shuffle(client_Model_list)
 
             for clientModel in client_Model_list:
                 grads = compute_grad_update(serverModel, clientModel, lr, device)

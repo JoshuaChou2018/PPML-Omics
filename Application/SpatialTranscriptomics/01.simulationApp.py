@@ -953,33 +953,7 @@ def Train(logger,
         preds = []
         serverModel.train()
 
-        if shuffle_model==False:
-
-            for client_idx in range(numberClients):
-                logger.info('client id {}'.format(client_idx))
-                trainLoader=trainLoaders[client_idx]
-                train_dataset=trainDatasets[client_idx]
-
-                # initial clientModel
-                clientModel = initialClientModel(serverModel, device=device)
-                if mode=='SGD':
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                else:
-                    torch.nn.utils.clip_grad_norm_(clientModel.parameters(), l2_norm_clip)
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                    #optimizer = DPSGD(l2_norm_clip=l2_norm_clip,params=clientModel.parameters(),lr=lr)
-                clientModel.train()
-
-                clientModel=Train_ST(train_dataset,trainLoader,testDataset,testLoader,clientModel,optimizer,epoch,dataset='train')
-
-                #serverModel=clientModel
-                # calculate grad update
-                grads=compute_grad_update(serverModel, clientModel,lr,device)
-
-                # update to serverModel
-                serverModel = updateServerModel(serverModel, grads, mode=mode, lr=lr, device=device,epsilon=epsilon, delta=delta)
-
-        elif shuffle_model==True:
+        if True:
 
             client_Model_list = []
 
@@ -1005,9 +979,9 @@ def Train(logger,
                 logger.info("Length of model list: {}".format(len(client_Model_list)))
 
             # Shuffle the client_Model_list
-
-            logger.info("=> Shuffling the client model")
-            random.shuffle(client_Model_list)
+            if shuffle_model == True:
+                logger.info("=> Shuffling the client model")
+                random.shuffle(client_Model_list)
 
             for clientModel in client_Model_list:
                 grads = compute_grad_update(serverModel, clientModel, lr, device)
