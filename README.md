@@ -228,10 +228,10 @@ done
 ```
 for dataset in yan pollen hrvatin camp-liver
 do
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 1 --dataset=$dataset --shuffle_model=0 --expname="DP_e_1"
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=0 --expname="DP_e_5"
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 10 --dataset=$dataset --shuffle_model=0 --expname="DP_e_10"
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 15 --dataset=$dataset --shuffle_model=0 --expname="DP_e_15"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 1 --dataset=$dataset --shuffle_model=0 --expname="DP_e_1"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=0 --expname="DP_e_5"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 10 --dataset=$dataset --shuffle_model=0 --expname="DP_e_10"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 15 --dataset=$dataset --shuffle_model=0 --expname="DP_e_15"
 
 done 
 
@@ -242,14 +242,14 @@ done
 ```
 for dataset in yan pollen hrvatin camp-liver
 do
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="DP_Shuffle_e_5"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="DP_Shuffle_e_5"
 done
 ```
 
 #### Example on Patient data
 
 ```
-python 03.simulationPatientApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=P0123 --shuffle_model=1 --expname="P0123"
+python 03.simulationPatientApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=P0123 --shuffle_model=1 --expname="P0123"
 ```
 
 #### Test and Visualization
