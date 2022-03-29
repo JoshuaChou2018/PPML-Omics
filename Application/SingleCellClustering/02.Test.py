@@ -67,8 +67,8 @@ class Model(nn.Module):
         super(Model,self).__init__()
 
         self.hidden1 = nn.Linear(input_size,1024)
-        self.hidden2 = nn.Linear(1024, 16)
-        self.hidden3 = nn.Linear(16, 1024)
+        self.hidden2 = nn.Linear(1024, 128)
+        self.hidden3 = nn.Linear(128, 1024)
         self.hidden4 = nn.Linear(1024, output_size)  # output layer
 
     def forward(self, x):
