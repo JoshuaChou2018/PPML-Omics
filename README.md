@@ -112,35 +112,35 @@ PPML-Omics provides 4 basic modes for calculate the gradients: SGD, SIGNSGD, DP,
 ##### Example of centrally trained system (#client=1)
 
 ```
-python 02.simulationApp.py --mode SGD --client 1 --epochs 100 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode SGD --client 1 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
 ```
 
 ##### Example of FL system with 5 clients
 
 ```
-python 02.simulationApp.py --mode SGD --client 5 --epochs 100 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode SGD --client 5 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
 ```
 
 ##### Example of FL+DP system with different privacy budget $\epsilon$
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 5 --expname DP_e5 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 10 --expname DP_e10 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 15 --expname DP_e15 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 5 --expname DP_e5 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 10 --expname DP_e10 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 15 --expname DP_e15 --train_data train_log10 --test_data test_log10
 ```
 
 ##### Example of FL+DP+shuffling system
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 5 --shuffle_model 1 --expname DPSM_e5 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 5 --shuffle_model 1 --expname PPMLOmics_e5 --train_data train_log10 --test_data test_log10
 ```
 
 ##### Example of varing number of clients
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 50 --epochs 100 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode DP --client 50 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
 ```
 
 #### Example of MIA
@@ -219,7 +219,7 @@ done
 ```
 for dataset in yan pollen hrvatin camp-liver
 do
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --dataset=$dataset --shuffle_model=0 --expname="FL"
+	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --dataset=$dataset --expname="FL"
 done 
 ```
 
@@ -242,7 +242,7 @@ done
 ```
 for dataset in yan pollen hrvatin camp-liver
 do
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="DP_Shuffle_e_5"
+	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="PPMLOmics_e_5"
 done
 ```
 
@@ -256,9 +256,9 @@ python 03.simulationPatientApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --
 
 ```
 # For datasets: yan pollen hrvatin camp-liver
-python 02.Test.py --dataset="yan" --model="model/FLDP+Shuffle_yan_modelbest.tar" --expname="DP_Shuffle_e_5"
+python 02.Test.py --dataset="yan" --model="model/PPMLOmics_yan_modelbest.tar" --expname="PPMLOmics_e_5"
 # For patients
-python 04.TestPatient.py --dataset="P0123" --model="model/P0123_modelbest.tar" --expname="DP_Shuffle_e_5"
+python 04.TestPatient.py --dataset="P0123" --model="model/P0123_modelbest.tar" --expname="PPMLOmics_e_5"
 ```
 
 ### Application 3: Integration of tumour morphology and gene expression with spatial transcriptomics
@@ -329,7 +329,7 @@ python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --ba
 #### Example of FL+DP+shuffling system
 
 ```
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --shuffle_model 1 --expname DPSM_e001
+python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --shuffle_model 1 --expname PPMLOmics_e001
 ```
 
 #### Example of iDLG on centrally trained system
@@ -350,4 +350,8 @@ python 02.attackApp.py --mode DP --expname iDLG_attack_DP --epsilon 0.01
 
 If you use our work in your research, please cite our paper:
 
-**Juexiao Zhou, Siyuan Chen, et al. "PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data"**
+**PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data**
+
+Juexiao Zhou, Siyuan Chen, Yulian Wu, Haoyang Li, Bin Zhang, Longxi Zhou, Yan Hu, Zihang Xiang, Zhongxiao Li, Ningning Chen, Wenkai Han, Di Wang, Xin Gao
+
+bioRxiv 2022.03.23.485485; doi: https://doi.org/10.1101/2022.03.23.485485
