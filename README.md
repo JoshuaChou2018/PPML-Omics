@@ -208,7 +208,7 @@ optional arguments:
 #### Example of centrally trained method (#client=1)
 
 ```
-for dataset in yan pollen hrvatin camp-liver
+for dataset in yan pollen hrvatin
 do
 	python 01.simulationApp.py --mode=SGD --client=1 --epochs=10 --lr=0.001 --dataset=$dataset --expname="centrally"
 done 
@@ -217,7 +217,7 @@ done
 ##### Example of FL method with 5 clients
 
 ```
-for dataset in yan pollen hrvatin camp-liver
+for dataset in yan pollen hrvatin
 do
 	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --dataset=$dataset --expname="FL"
 done 
@@ -226,7 +226,7 @@ done
 ##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
-for dataset in yan pollen hrvatin camp-liver
+for dataset in yan pollen hrvatin
 do
 	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 1 --dataset=$dataset --shuffle_model=0 --expname="DP_e_1"
 	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=0 --expname="DP_e_5"
@@ -240,7 +240,7 @@ done
 ##### Example of PPML-Omics
 
 ```
-for dataset in yan pollen hrvatin camp-liver
+for dataset in yan pollen hrvatin
 do
 	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="PPMLOmics_e_5"
 done
@@ -255,7 +255,7 @@ python 03.simulationPatientApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --
 #### Test and Visualization
 
 ```
-# For datasets: yan pollen hrvatin camp-liver
+# For datasets: yan pollen hrvatin
 python 02.Test.py --dataset="yan" --model="model/PPMLOmics_yan_modelbest.tar" --expname="PPMLOmics_e_5"
 # For patients
 python 04.TestPatient.py --dataset="P0123" --model="model/P0123_modelbest.tar" --expname="PPMLOmics_e_5"
