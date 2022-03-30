@@ -109,19 +109,19 @@ optional arguments:
 
 PPML-Omics provides 4 basic modes for calculate the gradients: SGD, SIGNSGD, DP, DPSIGNSGD, and 1 shuffling mode, with --shuffle_model sets to 1, which can be freely combined into different systems.
 
-##### Example of centrally trained system (#client=1)
+##### Example of centrally trained method (#client=1)
 
 ```
 python 02.simulationApp.py --mode SGD --client 1 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
 ```
 
-##### Example of FL system with 5 clients
+##### Example of FL method with 5 clients
 
 ```
 python 02.simulationApp.py --mode SGD --client 5 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
 ```
 
-##### Example of FL+DP system with different privacy budget $\epsilon$
+##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
 python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
@@ -130,7 +130,7 @@ python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr
 python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 15 --expname DP_e15 --train_data train_log10 --test_data test_log10
 ```
 
-##### Example of FL+DP+shuffling system
+##### Example of PPML-Omics
 
 ```
 python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 5 --shuffle_model 1 --expname PPMLOmics_e5 --train_data train_log10 --test_data test_log10
@@ -205,7 +205,7 @@ optional arguments:
                         0: off, 1: on
 ```
 
-#### Example of centrally trained system (#client=1)
+#### Example of centrally trained method (#client=1)
 
 ```
 for dataset in yan pollen hrvatin camp-liver
@@ -214,7 +214,7 @@ do
 done 
 ```
 
-##### Example of FL system with 5 clients
+##### Example of FL method with 5 clients
 
 ```
 for dataset in yan pollen hrvatin camp-liver
@@ -223,7 +223,7 @@ do
 done 
 ```
 
-##### Example of FL+DP system with different privacy budget $\epsilon$
+##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
 for dataset in yan pollen hrvatin camp-liver
@@ -237,7 +237,7 @@ done
 
 ```
 
-##### Example of FL+DP+shuffling system
+##### Example of PPML-Omics
 
 ```
 for dataset in yan pollen hrvatin camp-liver
@@ -302,19 +302,19 @@ optional arguments:
                         0: off, 1: on
 ```
 
-#### Example of centrally trained system (#client=1)
+#### Example of centrally trained method (#client=1)
 
 ```
 python 01.simulationApp.py --device cuda:0 --mode SGD --client 1 --epochs 30 --batch_size 64 --lr 1e-5 --expname centrally
 ```
 
-#### Example of FL system with 5 clients
+#### Example of FL method with 5 clients
 
 ```
 python 01.simulationApp.py --device cuda:0 --mode SGD --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --expname FL
 ```
 
-##### Example of FL+DP system with different privacy budget $\epsilon$
+##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
 python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --expname DP_e001
@@ -326,13 +326,13 @@ python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --ba
 python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 15 --expname DP_e15
 ```
 
-#### Example of FL+DP+shuffling system
+#### Example of PPML-Omics
 
 ```
 python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --shuffle_model 1 --expname PPMLOmics_e001
 ```
 
-#### Example of iDLG on centrally trained system
+#### Example of iDLG on centrally trained method
 
 ```
 python 02.attackApp.py --mode SGD --expname iDLG_attack_SGD
