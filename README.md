@@ -57,7 +57,7 @@ conda activate ppmlomics
 
 ### Application 1: Cancer type classification with PPML-Omics
 
-![image-20220217104849671](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/image-20220217104849671.eWS8R5.png)
+![image-20220417155912210](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/image-20220417155912210.dM2pxD.png)
 
 #### Root
 
