@@ -103,9 +103,10 @@ class Single_Cell_Data(Dataset):
         self.samples = []
         print("{} samples".format(feature.shape[0]))
         for i in range(feature.shape[0]):
-            # norm = np.linalg.norm(feature[i])
-            # gene = feature[i] / norm
-            gene = np.log10(feature[i]+0.01)
+            #norm = np.linalg.norm(feature[i])
+            #gene = feature[i] / norm
+            gene = feature[i]
+            #gene = np.log10(feature[i]+0.01)
             info = {
                 "genes": gene,
                 "celltype": self.label_dic[label[i]]
@@ -127,6 +128,7 @@ class Single_Cell_Data(Dataset):
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return len(self.samples)
+
 if __name__ == '__main__':
     if __name__ == '__main__':
         parser = argparse.ArgumentParser(description='dfsa')
@@ -167,7 +169,6 @@ if __name__ == '__main__':
 
         logger = log_creater(output_dir=os.path.join(root,
                                                      "result",
-                                                     "SC",
                                                      expname),
                              expname="{}_{}".format(expname,dataset_name))
 
@@ -186,7 +187,7 @@ if __name__ == '__main__':
         best_ARI = 0
         best_output = None
 
-        for i in range(5):
+        for i in range(3):
             labels = []
             features = []
             for genes, label in tqdm(data_loader):
@@ -234,7 +235,6 @@ if __name__ == '__main__':
 
         output_file = os.path.join(root,
                                    "result",
-                                   "SC",
                                    expname,
                                    "{}_{}.npy".format(expname, dataset_name))
         final_output["label_dic"] = dataset.label_dic

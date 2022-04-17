@@ -4,9 +4,9 @@ This repository contains the implementation of applications with PPML-Omics from
 
 **Juexiao Zhou, Siyuan Chen, et al. "PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data"**
 
-![fig1](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/fig1.S2jS3C.png)
+![fig1](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/fig1.x5stAy.png)
 
-**Fig. 1 PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data** a, Schematic overview of the relationships and interactions between distributed data owners, algorithm owners, attackers and tech- niques in the field of secure and private AI. b, Schematic overview of our PPML-Omics system design, in which the clients train the local model with local private data and the noised gradients with DP mechanism goes through the shuffling mechanism. Then all noised and shuffled updates are sent to the central server and used for updating the central model. c, Illustration of 3 representative tasks, datasets and attacks of omic data in this paper for demonstrating the utility and privacy-preserving capability of our PPML-Omics system, including the 1) cancer classification with bulk RNA-seq, 2) clustering with scRNA-seq and 3) integration of morphology and gene expression with spatial transcriptomics.
+**Fig. 1 PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data.**  a, Schematic overview of the relationships and interactions between distributed data owners, aggregator, attackers and techniques in the field of secure and private AI. b, Schematic overview of differnent methods, including centrally trained method, federated learning (FL), FL with differential privacy (DP), FL with DP and shuffling, and PPML-Omics. c, Illustration of 3 representative tasks, datasets and attacks of omic data in this paper for demonstrating the utility and privacy-preserving capability of PPML-Omics, including the 1) cancer classification with bulk RNA-seq, 2) clustering with scRNA-seq and 3) integration of morphology and gene expression with spatial transcriptomics.
 
 # Prerequisites
 
@@ -112,35 +112,40 @@ PPML-Omics provides 4 basic modes for calculate the gradients: SGD, SIGNSGD, DP,
 ##### Example of centrally trained method (#client=1)
 
 ```
-python 02.simulationApp.py --mode SGD --client 1 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode SGD --client 1 --epochs 10 --batch_size 8 --lr 0.001 --expname PureSGD0 --train_data train_log10_0 --test_data test_log10_0
 ```
 
 ##### Example of FL method with 5 clients
 
 ```
-python 02.simulationApp.py --mode SGD --client 5 --epochs 10 --batch_size 32 --lr 0.001 --expname SGD --train_data train_log10 --test_data test_log10
+python 02.simulationApp.py --mode SGD --client 5 --epochs 10 --batch_size 8 --lr 0.001 --expname FL --train_data train_log10_0 --test_data test_log10_0
 ```
 
 ##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 5 --expname DP_e5 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 10 --expname DP_e10 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 15 --expname DP_e15 --train_data train_log10 --test_data test_log10
+for e in 50 40 30 20 10 5 1
+do
+python 02.simulationApp.py --mode DP --client 20 --epochs 10 --device cuda:1 --batch_size 8 --lr 0.001 --epsilon ${e} --expname DP_e${e} --train_data train_log10_0 --test_data test_log10_0
+done
 ```
 
 ##### Example of PPML-Omics
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 5 --shuffle_model 1 --expname PPMLOmics_e5 --train_data train_log10 --test_data test_log10
+for e in 50 40 30 20 10 5 1
+do
+python 02.simulationApp.py --mode PPMLOmics --client 20 --epochs 10 --batch_size 8 --lr 0.001 --epsilon ${e} --expname PPMLOmics_e${e} --train_data train_log10_0 --test_data test_log10_0
+done
 ```
 
 ##### Example of varing number of clients
 
 ```
-python 02.simulationApp.py --mode DP --client 5 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
-python 02.simulationApp.py --mode DP --client 50 --epochs 10 --batch_size 32 --lr 0.001 --epsilon 1 --expname DP_e1 --train_data train_log10 --test_data test_log10
+for cli in 5 10 20 50
+do
+python 02.simulationApp.py --mode PPMLOmics --client ${cli} --epochs 10 --device cuda:1 --batch_size 8 --lr 0.001 --epsilon 20  --expname PPMLOmics_e20_cli${cli} --train_data train_log10_0 --test_data test_log10_0
+done
 ```
 
 #### Example of MIA
@@ -208,57 +213,65 @@ optional arguments:
 #### Example of centrally trained method (#client=1)
 
 ```
-for dataset in yan pollen hrvatin
-do
-	python 01.simulationApp.py --mode=SGD --client=1 --epochs=10 --lr=0.001 --dataset=$dataset --expname="centrally"
-done 
+for dataset in hrvatin pollen yan
+  do
+     python 01.simulationApp.py --dataset=$dataset --mode=SGD --client=1 --epochs=5 --batch_size=8 --lr=0.001 --expname="PureSGD"
+done
 ```
 
 ##### Example of FL method with 5 clients
 
 ```
-for dataset in yan pollen hrvatin
-do
-	python 01.simulationApp.py --mode=SGD --client=5 --epochs=10 --lr=0.001 --dataset=$dataset --expname="FL"
-done 
+for dataset in hrvatin pollen yan
+  do
+     python 01.simulationApp.py --dataset=$dataset --mode=SGD --client=5 --epochs=5 --batch_size=8 --lr=0.001 --expname="FL"
+done
 ```
 
 ##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
-for dataset in yan pollen hrvatin
-do
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 1 --dataset=$dataset --shuffle_model=0 --expname="DP_e_1"
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=0 --expname="DP_e_5"
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 10 --dataset=$dataset --shuffle_model=0 --expname="DP_e_10"
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 15 --dataset=$dataset --shuffle_model=0 --expname="DP_e_15"
-
-done 
-
+for dataset in hrvatin pollen yan
+  do
+    for e in 2 3 5 10 20 50
+    do
+     python 01.simulationApp.py --dataset=$dataset --mode=DP --client=30 --epochs=5 --rep=3 --batch_size=8 --lr=0.001 --epsilon=${e} --delta=1e-5 --expname="DP"
+    done
+done
 ```
 
 ##### Example of PPML-Omics
 
 ```
-for dataset in yan pollen hrvatin
-do
-	python 01.simulationApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=$dataset --shuffle_model=1 --expname="PPMLOmics_e_5"
+for dataset in hrvatin pollen yan
+  do
+    for e in 2 3 5 10 20 50
+    do
+     python 01.simulationApp.py --dataset=$dataset --mode=PPMLOmics --client=30 --epochs=5 --rep=3 --batch_size=8 --lr=0.001 --epsilon=${e} --delta=1e-5 --expname="PPML-Omics"
+    done
 done
+
 ```
 
 #### Example on Patient data
 
 ```
-python 03.simulationPatientApp.py --mode=DP --client=5 --epochs=10 --lr=0.001 --epsilon 5 --dataset=P0123 --shuffle_model=1 --expname="P0123"
+for dataset in P0410 P1026
+do
+    for e in 2 3 5 10 20 50
+    do
+    	python 01.simulationApp.py --dataset=$dataset --mode=PPMLOmics --client=1 --epochs=5 --rep=3 --batch_size=8 --lr=0.001 --epsilon=${e} --delta=1e-5 --expname="PPML-Omics"
+    done
+done
 ```
 
 #### Test and Visualization
 
 ```
 # For datasets: yan pollen hrvatin
-python 02.Test.py --dataset="yan" --model="model/PPMLOmics_yan_modelbest.tar" --expname="PPMLOmics_e_5"
+python 02.Test.py --dataset="yan" --model="model/PPMLOmics_yan_modelbest.tar" --expname="PPMLOmics_e5"
 # For patients
-python 04.TestPatient.py --dataset="P0123" --model="model/P0123_modelbest.tar" --expname="PPMLOmics_e_5"
+python 04.TestPatient.py --dataset="P0123" --model="model/PPMLOmics_P0123_epsilon_5.0_modelbest.tar" --expname="PPMLOmics_e5"
 ```
 
 ### Application 3: Integration of tumour morphology and gene expression with spatial transcriptomics
@@ -305,31 +318,31 @@ optional arguments:
 #### Example of centrally trained method (#client=1)
 
 ```
-python 01.simulationApp.py --device cuda:0 --mode SGD --client 1 --epochs 30 --batch_size 64 --lr 1e-5 --expname centrally
+python 01.simulationApp.py --device cuda:0 --mode SGD --client 1 --epochs 10 --batch_size 32 --nprocess 40 --lr 1e-6 --expname PureSGD
 ```
 
-#### Example of FL method with 5 clients
+#### Example of FL method with 30 clients
 
 ```
-python 01.simulationApp.py --device cuda:0 --mode SGD --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --expname FL
+python 01.simulationApp.py --device cuda:1 --mode SGD --client 30 --epochs 10 --batch_size 32 --nprocess 40 --lr 1e-6 --expname FL
 ```
 
 ##### Example of FL+DP method with different privacy budget $\epsilon$
 
 ```
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --expname DP_e001
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.1 --expname DP_e01
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.5 --expname DP_e05
-python 01.simulationApp.py --device cuda:0 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 1 --expname DP_e1
-python 01.simulationApp.py --device cuda:0 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 5 --expname DP_e5
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 10 --expname DP_e10
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 15 --expname DP_e15
+for e in 10 5 1 0.5 0.1
+do
+python 01.simulationApp.py --device cuda:1 --mode DP --client 30 --epochs 10 --epsilon ${e} --lr 1e-5 --delta 1e-5 --batch_size 32 --nprocess 40 --l2_clip 20 --expname DP_e${e}
+done
 ```
 
 #### Example of PPML-Omics
 
 ```
-python 01.simulationApp.py --device cuda:1 --mode DP --client 5 --epochs 30 --batch_size 32 --nprocess 15 --lr 1e-6 --epsilon 0.01 --shuffle_model 1 --expname PPMLOmics_e001
+for e in 10 5 1 0.5 0.1
+do
+python 01.simulationApp.py --device cuda:0 --mode PPMLOmics --client 30 --epochs 10 --epsilon ${e} --lr 1e-6 --delta 1e-5 --batch_size 32 --nprocess 40 --l2_clip 20 --expname PPMLOmics_e${e}
+done
 ```
 
 #### Example of iDLG on centrally trained method

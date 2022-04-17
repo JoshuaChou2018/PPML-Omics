@@ -133,9 +133,10 @@ class Single_Cell_Data(Dataset):
         self.samples = []
         print("{} samples".format(feature.shape[0]))
         for i in range(feature.shape[0]):
-            # norm = np.linalg.norm(feature[i])
-            # gene = feature[i] / norm
-            gene = np.log10(feature[i]+0.01)
+            #norm = np.linalg.norm(feature[i])
+            #gene = feature[i] / norm
+            gene = feature[i]
+            #gene = np.log10(feature[i]+0.01)
             info = {
                 "genes": gene,
                 "celltype": self.label_dic[label[i]]
@@ -185,11 +186,6 @@ def calibrateAnalyticGaussianMechanism(epsilon, delta, GS=1, tol=1.e-12):
         Output:
         sigma : standard deviation of Gaussian noise needed to achieve (epsilon,delta)-DP under global sensitivity GS
     """
-
-    global shuffle_model
-    global numberClients
-    if shuffle_model==True:
-        epsilon=epsilon*numberClients
 
     def Phi(t):
         return 0.5 * (1.0 + erf(float(t) / sqrt(2.0)))
@@ -302,10 +298,7 @@ def updateServerModel(server_model, grad_updates, lr, device=None, mode='SGD',ep
     if mode == 'SIGNSGD':
         for i in range(len(grad_updates)):
             aggregated.append(sign(grad_updates[i]))
-    if mode == 'DPSIGNSGD':
-        for i in range(len(grad_updates)):
-            aggregated.append(dpsign(grad_updates[i], device=device ,epsilon=epsilon, delta=delta))
-    if mode=='DP':
+    if mode=='DP' or mode == 'DPShuffling' or mode == 'PPMLOmics':
         for i in range(len(grad_updates)):
             aggregated.append(dp(grad_updates[i], device=device ,epsilon=epsilon, delta=delta))
     if mode=='SGD':
@@ -356,7 +349,11 @@ def make_optimizer_class(cls):
 
 DPSGD = make_optimizer_class(torch.optim.SGD)
 
-
+def DRSimulation(l):
+    for i in range(len(l)-1):
+        j = random.randint(i, len(l)-1) # Return a random integer N such that a <= N <= b.
+        l[i], l[j] = l[j], l[i]
+    return l
 
 def Train(logger,
           dataset_name,
@@ -374,6 +371,7 @@ def Train(logger,
     global numberClients
     global l2_norm_clip
     global shuffle_model
+    global current_epoch
 
 
     # best_ARI = 0
@@ -383,7 +381,7 @@ def Train(logger,
     #optimizer = torch.optim.Adam(serverModel.parameters(), lr=lr)
 
     for epoch in range(num_epochs):
-
+        current_epoch = epoch
         loss_avg = RunningAverage()
 
         logger.info('Epoch {}/{}'.format(epoch+1, num_epochs))
@@ -429,15 +427,26 @@ def Train(logger,
                 logger.info("Length of model list: {}".format(len(client_Model_list)))
 
             # Shuffle the client_Model_list
-            if shuffle_model == True:
+            if args.mode == 'DPShuffling':
                 logger.info("=> Shuffling the client model")
                 random.shuffle(client_Model_list)
+            elif args.mode == 'PPMLOmics':
+                logger.info("=> using the DR simulation")
+                client_Model_list = DRSimulation(client_Model_list)
 
+            aggregated_grads = []
             for clientModel in client_Model_list:
                 grads = compute_grad_update(serverModel, clientModel, lr, device)
                 # update to serverModel
-                serverModel = updateServerModel(serverModel, grads, mode=mode, lr=lr, device=device, epsilon=epsilon,
-                                                delta=delta)
+                try:
+                    aggregated_grads = [aggregated_grads[i] + grads[i] for i in range(len(grads))]
+                except:
+                    print('** can not sum up, if this alarm continuously shows more than once, check!')
+                    aggregated_grads = grads
+            aggregated_grads = [x / args.client for x in aggregated_grads]
+
+            serverModel = updateServerModel(serverModel, aggregated_grads, mode=mode, lr=lr, device=device,
+                                                epsilon=args.epsilon_l, delta=args.delta_l)
 
         features = []
         labels = []
@@ -482,6 +491,8 @@ def Train(logger,
                                                                              metrics['NMI'],
                                                                              metrics['CA'],
                                                                              metrics['JI'], ))
+        save_checkpoint(serverModel, is_best, model_path, logger,
+                            expname=expname + "_" + dataset_name + "_epsilon_{}_last".format(epsilon))
 
     return serverModel, output
 
@@ -520,22 +531,23 @@ if __name__ == '__main__':
 
     # python FLDP_CC_simulation_App.py --mode DP --client 5 --epsilon 5 --expname DP_data0_e5 --train_data train_0 --test_data test_0
 
+    start = time.time()
     parser = argparse.ArgumentParser(description='dfsa')
     parser.add_argument('--device', default='cuda:0', help='default: cuda:0')
     parser.add_argument('--epochs', type=int, default=10, help='default: 10')
-    parser.add_argument('--batch_size', type=int, default=1, help='default: 1')
+    parser.add_argument('--batch_size', type=int, default=8, help='default: 1')
     parser.add_argument('--lr', type=float, default=0.001, help='default: 0.01')
-    parser.add_argument('--epsilon', type=float, default=1, help='default: 1')
-    parser.add_argument('--delta', type=float, default=10e-5, help='default: 10e-5')
-    parser.add_argument('--mode', default='SGD', help='default: SGD, {SGD, SIGNSGD, DP, DPSIGNSGD}')
-    parser.add_argument('--client', type=int, default=3, help='default: 3')
-    parser.add_argument('--l2_clip', type=int, default=5, help='default: 5')
+    parser.add_argument('--epsilon', type=float, default=20, help='default: 20')
+    parser.add_argument('--delta', type=float, default=0.1, help='default: 10e-5')
+    parser.add_argument('--mode', default='SGD', help='default: SGD, DP, DPShuffling, PPMLOmics')
+    parser.add_argument('--client', type=int, default=20, help='default: 3')
+    parser.add_argument('--l2_clip', type=float, default=5, help='default: 5')
     parser.add_argument('--nprocess', type=int, default=100, help='default: 20')
-    parser.add_argument('--dataset', default="yan",help='dataset name')
     parser.add_argument('--expname', help='experiment name')
+    parser.add_argument('--dataset', default="yan", help='dataset name')
     parser.add_argument('--train_data', default='train', help='will load data/{}.npy')
     parser.add_argument('--test_data', default='test', help='will load data/{}.npy')
-    parser.add_argument('--shuffle_model', type=int,default=0, help='0: off, 1: on')
+    parser.add_argument('--shuffle_model', type=int, default=0, help='0: off, 1: on')
     args = parser.parse_args()
 
     dataset_name = args.dataset
@@ -553,13 +565,19 @@ if __name__ == '__main__':
     train_index=args.train_data
     test_index=args.test_data
     nprocess=args.nprocess
-    if args.shuffle_model==0:
-        shuffle_model=False
-    elif args.shuffle_model==1:
-        shuffle_model=True
+    if args.mode == 'DPShuffling':
+        shuffle_model = True
 
-
-    logger = log_creater(output_dir=os.path.join(root, "output","SC",
+    if args.mode == 'DP' or args.mode == 'SGD':
+        args.epsilon_l = args.epsilon/(2*np.sqrt(2*args.epochs*np.log(2/args.delta)))
+        args.delta_l = args.delta/(2*args.epochs)
+    elif args.mode == 'DPShuffling' or args.mode == 'PPMLOmics':
+        args.epsilon_c = args.epsilon / (2 * np.sqrt(2 * args.epochs * np.log(2 / args.delta)))
+        args.delta_c = args.delta / (2 * args.epochs)
+        args.epsilon_l = args.epsilon_c * np.sqrt(args.client) / (np.sqrt(np.log(2/args.delta_c)))
+        args.delta_l = args.delta_c/args.client
+    current_epoch = 0
+    logger = log_creater(output_dir=os.path.join(root, "output",
                                                  "{}_epsilon_{}".format(expname,epsilon)),
                          expname=expname+"_"+dataset_name +"_{}".format(epsilon))
 
@@ -567,8 +585,13 @@ if __name__ == '__main__':
     logger.info("Epochs: {}".format(EPOCHS))
     logger.info("lr: {}".format(lr))
     logger.info("batch size: {}".format(BATCH_SIZE))
-    logger.info("epsilon: {}".format(epsilon))
-    logger.info("delta: {}".format(delta))
+    if args.mode != 'SGD':
+        logger.info("end2end epsilon: {}".format(epsilon))
+        logger.info("end2end delta: {}".format(delta))
+        logger.info("client epsilon: {}".format(args.epsilon_l))
+        logger.info("client delta: {}".format(args.delta_l))
+        logger.info(
+            "sigma: {}".format(calibrateAnalyticGaussianMechanism(args.epsilon_l, args.delta_l, GS=args.l2_clip, tol=1.e-12)))
 
     device = torch.device(device_name)
 
@@ -601,7 +624,7 @@ if __name__ == '__main__':
 
 
     output_file = os.path.join(root,
-                               "output", "SC",
+                               "output",
                                "{}_epsilon_{}".format(expname,epsilon),
                                "{}_{}.npy".format(expname,dataset_name))
     if not os.path.exists(os.path.dirname(output_file)):
@@ -610,3 +633,4 @@ if __name__ == '__main__':
     output["label_dic"] = label_dic
 
     np.save(output_file, output)
+

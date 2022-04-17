@@ -199,11 +199,6 @@ def calibrateAnalyticGaussianMechanism(epsilon, delta, GS=1, tol=1.e-12):
         sigma : standard deviation of Gaussian noise needed to achieve (epsilon,delta)-DP under global sensitivity GS
     """
 
-    global shuffle_model
-    global numberClients
-    if shuffle_model==True:
-        epsilon=epsilon*numberClients
-
     def Phi(t):
         return 0.5 * (1.0 + erf(float(t) / sqrt(2.0)))
 
@@ -315,10 +310,7 @@ def updateServerModel(server_model, grad_updates, lr, device=None, mode='SGD',ep
     if mode == 'SIGNSGD':
         for i in range(len(grad_updates)):
             aggregated.append(sign(grad_updates[i]))
-    if mode == 'DPSIGNSGD':
-        for i in range(len(grad_updates)):
-            aggregated.append(dpsign(grad_updates[i], device=device ,epsilon=epsilon, delta=delta))
-    if mode=='DP':
+    if mode=='DP' or mode == 'DPShuffling' or mode == 'PPMLOmics':
         for i in range(len(grad_updates)):
             aggregated.append(dp(grad_updates[i], device=device ,epsilon=epsilon, delta=delta))
     if mode=='SGD':
@@ -380,6 +372,11 @@ def f1(preds, labels):
     micro_f1 = f1_score(y_true, y_pred, average='micro')
     return macro_f1,micro_f1
 
+def DRSimulation(l):
+    for i in range(len(l)-1):
+        j = random.randint(i, len(l)-1) # Return a random integer N such that a <= N <= b.
+        l[i], l[j] = l[j], l[i]
+    return l
 
 def Train(logger,
           trainLoaders,
@@ -423,12 +420,7 @@ def Train(logger,
 
                 # initial clientModel
                 clientModel = initialClientModel(serverModel, device=device)
-                if mode == 'SGD':
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                else:
-                    torch.nn.utils.clip_grad_norm_(clientModel.parameters(), l2_norm_clip,norm_type=2)
-                    optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
-                    # optimizer = DPSGD(l2_norm_clip=l2_norm_clip,params=clientModel.parameters(),lr=lr)
+                optimizer = torch.optim.SGD(clientModel.parameters(), lr=lr)
                 clientModel.train()
 
                 with tqdm(total=len(trainLoader)) as t:
@@ -457,15 +449,25 @@ def Train(logger,
                 logger.info("Length of model list: {}".format(len(client_Model_list)))
 
             # Shuffle the client_Model_list
-            if shuffle_model == True:
+            if args.mode == 'DPShuffling':
                 logger.info("=> Shuffling the client model")
                 random.shuffle(client_Model_list)
+            elif args.mode == 'PPMLOmics':
+                logger.info("=> using the DR simulation")
+                client_Model_list = DRSimulation(client_Model_list)
 
+            aggregated_grads = []
             for clientModel in client_Model_list:
                 grads = compute_grad_update(serverModel, clientModel, lr, device)
                 # update to serverModel
-                serverModel = updateServerModel(serverModel, grads, mode=mode, lr=lr, device=device, epsilon=epsilon,
-                                                delta=delta)
+                try:
+                    aggregated_grads=[aggregated_grads[i] + grads[i] for i in range(len(grads))]
+                except:
+                    print('** can not sum up, if this alarm continuously shows more than once, check!')
+                    aggregated_grads = grads
+            aggregated_grads = [x/args.client for x in aggregated_grads]
+
+            serverModel = updateServerModel(serverModel, aggregated_grads, mode=mode, lr=lr, device=device, epsilon=args.epsilon_l,delta=args.delta_l)
 
         acc=accuracy(preds, labels)
         macro_f1, micro_f1 = f1(preds, labels)
@@ -554,22 +556,22 @@ def getSurvivalDataset(numClients, train_index='train', test_index='test'):
 if __name__ == '__main__':
 
     # python FLDP_CC_simulation_App_H3_R1_D0.py --mode DP --client 5 --epsilon 5 --expname DP_data0_e5 --train_data train_0 --test_data test_0
-
+    start = time.time()
     parser = argparse.ArgumentParser(description='dfsa')
     parser.add_argument('--device', default='cuda:0', help='default: cuda:0')
     parser.add_argument('--epochs', type=int, default=10, help='default: 10')
-    parser.add_argument('--batch_size', type=int, default=1, help='default: 1')
+    parser.add_argument('--batch_size', type=int, default=8, help='default: 1')
     parser.add_argument('--lr', type=float, default=0.001, help='default: 0.01')
-    parser.add_argument('--epsilon', type=float, default=1, help='default: 1')
-    parser.add_argument('--delta', type=float, default=10e-5, help='default: 10e-5')
-    parser.add_argument('--mode', default='SGD', help='default: SGD, {SGD, SIGNSGD, DP, DPSIGNSGD}')
-    parser.add_argument('--client', type=int, default=3, help='default: 3')
+    parser.add_argument('--epsilon', type=float, default=20, help='default: 1')
+    parser.add_argument('--delta', type=float, default=0.1, help='default: 10e-5')
+    parser.add_argument('--mode', default='SGD', help='default: SGD, DP, DPShuffling, PPMLOmics')
+    parser.add_argument('--client', type=int, default=20, help='default: 3')
     parser.add_argument('--l2_clip', type=int, default=5, help='default: 5')
     parser.add_argument('--nprocess', type=int, default=100, help='default: 20')
     parser.add_argument('--expname', help='experiment name')
     parser.add_argument('--train_data', default='train', help='will load data/{}.npy')
     parser.add_argument('--test_data', default='test', help='will load data/{}.npy')
-    parser.add_argument('--shuffle_model', type=int,default=0, help='0: off, 1: on')
+    parser.add_argument('--shuffle_model', type=int, default=0, help='0: off, 1: on')
     args = parser.parse_args()
 
     device_name = args.device
@@ -586,10 +588,17 @@ if __name__ == '__main__':
     train_index=args.train_data
     test_index=args.test_data
     nprocess=args.nprocess
-    if args.shuffle_model==0:
-        shuffle_model=False
-    elif args.shuffle_model==1:
+    if args.mode=='DPShuffling':
         shuffle_model=True
+
+    if args.mode == 'DP' or args.mode == 'SGD':
+        args.epsilon_l = args.epsilon/(2*np.sqrt(2*args.epochs*np.log(2/args.delta)))
+        args.delta_l = args.delta/(2*args.epochs)
+    elif args.mode == 'DPShuffling' or args.mode == 'PPMLOmics':
+        args.epsilon_c = args.epsilon / (2 * np.sqrt(2 * args.epochs * np.log(2 / args.delta)))
+        args.delta_c = args.delta / (2 * args.epochs)
+        args.epsilon_l = args.epsilon_c * np.sqrt(args.client) / (np.sqrt(np.log(2/args.delta_c)))
+        args.delta_l = args.delta_c/args.client
 
     if 'cuda' in device_name:
         os.environ['CUDA_VISIBLE_DEVICES'] = device_name.split(':')[1]
@@ -600,13 +609,17 @@ if __name__ == '__main__':
                    'PRAD', 'READ', 'SARC', 'SKCM', 'STAD', 'STES', 'TGCT', 'THCA', 'THYM', 'UCEC', 'UCS', 'UVM']
 
     logger = log_creater(output_dir='log', expname=expname)
-
     logger.info("Mode: {}".format(mode))
+    logger.info("clients: {}".format(args.client))
     logger.info("Epochs: {}".format(EPOCHS))
     logger.info("lr: {}".format(lr))
     logger.info("batch size: {}".format(BATCH_SIZE))
-    logger.info("epsilon: {}".format(epsilon))
-    logger.info("delta: {}".format(delta))
+    if args.mode != 'SGD':
+        logger.info("end2end epsilon: {}".format(epsilon))
+        logger.info("end2end delta: {}".format(delta))
+        logger.info("client epsilon: {}".format(args.epsilon_l))
+        logger.info("client delta: {}".format(args.delta_l))
+        logger.info("sigma: {}".format(calibrateAnalyticGaussianMechanism(args.epsilon_l, args.delta_l, GS=args.l2_clip, tol=1.e-12)))
 
     device = torch.device(device_name)
 
@@ -639,3 +652,6 @@ if __name__ == '__main__':
          model=trained_model,
          criterions=criterion,
          device=device)
+
+    stop = time.time()
+    logger.info(f"The time of the run: {stop - start}")

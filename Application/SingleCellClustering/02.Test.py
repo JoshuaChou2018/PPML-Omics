@@ -21,10 +21,11 @@ from collections import OrderedDict
 import argparse
 import torch
 import torch.nn as nn
+
 root = os.path.dirname(__file__)
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 def log_creater(output_dir, expname):
     if not os.path.exists(output_dir):
@@ -127,116 +128,125 @@ class Single_Cell_Data(Dataset):
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return len(self.samples)
+
 if __name__ == '__main__':
-    if __name__ == '__main__':
-        parser = argparse.ArgumentParser(description='dfsa')
-        parser.add_argument('--dataset', default="yan", help='dataset name')
-        parser.add_argument('--model', default="", help='model path')
-        parser.add_argument('--expname', default="", help='expname')
+    parser = argparse.ArgumentParser(description='dfsa')
+    parser.add_argument('--dataset', default="yan", help='dataset name')
+    parser.add_argument('--model', default="", help='model path')
+    parser.add_argument('--expname', default="", help='expname')
 
-        args = parser.parse_args()
-        dataset_name = args.dataset
-        model_path = args.model
-        expname = args.expname
-        device_name = 'cuda:0'
+    args = parser.parse_args()
+    dataset_name = args.dataset
+    model_path = args.model
+    expname = args.expname
+    device_name = 'cuda:0'
 
-        BATCH_SIZE = 1
+    BATCH_SIZE = 1
 
-        device = torch.device(device_name)
+    device = torch.device(device_name)
 
-        dataset = Single_Cell_Data(dataset_name=dataset_name)
-        k = len(dataset.label_dic.keys())
-        input_size = dataset.feature_size
+    dataset = Single_Cell_Data(dataset_name=dataset_name)
+    k = len(dataset.label_dic.keys())
+    input_size = dataset.feature_size
 
-        print("k = {}".format(k))
-        print("input_size = {}".format(input_size))
+    print("k = {}".format(k))
+    print("input_size = {}".format(input_size))
 
-        data_loader = DataLoader(dataset, BATCH_SIZE, True)
-
+    data_loader = DataLoader(dataset, BATCH_SIZE, True)
 
 
-        model = Model(input_size=input_size,
-                      output_size=input_size)
 
-        print("=> Loading {}".format(model_path))
-        model = model.to(device)
-        model = torch.nn.DataParallel(model).cuda()
+    model = Model(input_size=input_size,
+                  output_size=input_size)
 
-        print("=> Loading module from {}".format(model_path))
-        model.load_state_dict(torch.load(model_path))
+    print("=> Loading {}".format(model_path))
+    model = model.to(device)
+    model = torch.nn.DataParallel(model).cuda()
 
-        logger = log_creater(output_dir=os.path.join(root,
-                                                     "result",
-                                                     "SC",
-                                                     expname),
-                             expname="{}_{}".format(expname,dataset_name))
+    print("=> Loading module from {}".format(model_path))
+    model.load_state_dict(torch.load(model_path))
 
-        print("=> Aggregate Features...")
+    logger = log_creater(output_dir=os.path.join(root,
+                                                 "result",
+                                                 "SC",
+                                                 expname),
+                         expname="{}_{}".format(expname,dataset_name))
 
-        model.eval()
+    print("=> Aggregate Features...")
+
+    model.eval()
 
 
-        final_metric = {
-            "ARI":[],
-            "NMI": [],
-            "CA": [],
-            "JI": [],
+    final_metric = {
+        "ARI":[],
+        "NMI": [],
+        "CA": [],
+        "JI": [],
+    }
+    final_output = None
+    best_ARI = 0
+    best_output = None
+
+    for i in range(10):
+        labels = []
+        features = []
+        for genes, label in tqdm(data_loader):
+            genes, label = genes.to(device), label.to(device)
+            feat, out = model(genes)
+            labels += list(label.detach().cpu().numpy())
+            features += list(feat.detach().cpu().numpy())
+        print("feature shape: {}".format(np.array(features).shape))
+
+        kmeans = KMeans(n_clusters=k, random_state=0).fit(np.array(features))
+
+        pred = kmeans.labels_
+
+        metrics = M.compute_metrics(labels, pred)
+
+        output = {
+            "feature": np.array(features),
+            "label": labels,
+            "pred": pred
         }
-        final_output = None
-        best_ARI = 0
-        best_output = None
-
-        for i in range(5):
-            labels = []
-            features = []
-            for genes, label in tqdm(data_loader):
-                genes, label = genes.to(device), label.to(device)
-                feat, out = model(genes)
-                labels += list(label.detach().cpu().numpy())
-                features += list(feat.detach().cpu().numpy())
-            print("feature shape: {}".format(np.array(features).shape))
-
-            kmeans = KMeans(n_clusters=k, random_state=0).fit(np.array(features))
-
-            pred = kmeans.labels_
-
-            metrics = M.compute_metrics(labels, pred)
-
-            output = {
-                "feature": np.array(features),
-                "label": labels,
-                "pred": pred
-            }
 
 
-            logger.info('Test iter {} ARI:{} \t NMI:{} \t CA:{} \t JI:{}'.format(i,
-                                                                 metrics['ARI'],
-                                                                 metrics['NMI'],
-                                                                 metrics['CA'],
-                                                                 metrics['JI'], ))
+        logger.info('Test iter {} ARI:{} \t NMI:{} \t CA:{} \t JI:{}'.format(i,
+                                                             metrics['ARI'],
+                                                             metrics['NMI'],
+                                                             metrics['CA'],
+                                                             metrics['JI'], ))
 
-            if metrics["ARI"] > best_ARI:
-                best_ARI = metrics["ARI"]
-                final_output = output.copy()
+        if metrics["ARI"] > best_ARI:
+            best_ARI = metrics["ARI"]
+            final_output = output.copy()
 
-            final_metric["ARI"].append(metrics["ARI"])
-            final_metric["NMI"].append(metrics["NMI"])
-            final_metric["CA"].append(metrics["CA"])
-            final_metric["JI"].append(metrics["JI"])
-        logger.info("************************************************************")
-        logger.info('Final Best: ARI:{} \t NMI:{} \t CA:{} \t JI:{}'.format(
-                                         np.max(final_metric['ARI']),
-                                         np.max(final_metric['NMI']),
-                                         np.max(final_metric['CA']),
-                                         np.max(final_metric['JI']) ))
+        final_metric["ARI"].append(float('%.3f'%metrics["ARI"]))
+        final_metric["NMI"].append(float('%.3f'%metrics["NMI"]))
+        final_metric["CA"].append(float('%.3f'%metrics["CA"]))
+        final_metric["JI"].append(float('%.3f'%metrics["JI"]))
+    logger.info("************************************************************")
+    logger.info('Final Best: ARI:{} \t NMI:{} \t CA:{} \t JI:{}'.format(
+        np.max(final_metric['ARI']),
+        np.max(final_metric['NMI']),
+        np.max(final_metric['CA']),
+        np.max(final_metric['JI'])))
+    logger.info('Final Mean: ARI:{} \t NMI:{} \t CA:{} \t JI:{}'.format(
+        np.mean(final_metric['ARI']),
+        np.mean(final_metric['NMI']),
+        np.mean(final_metric['CA']),
+        np.mean(final_metric['JI'])))
 
+    df = pd.DataFrame(final_metric)
+    df.to_csv(os.path.join(root,
+                               "result",
+                               "SC",
+                               expname,
+                               "{}_{}_statistics.csv".format(expname, dataset_name)), index=False)
+    output_file = os.path.join(root,
+                               "result",
+                               "SC",
+                               expname,
+                               "{}_{}.npy".format(expname, dataset_name))
+    final_output["label_dic"] = dataset.label_dic
 
-
-        output_file = os.path.join(root,
-                                   "result",
-                                   "SC",
-                                   expname,
-                                   "{}_{}.npy".format(expname, dataset_name))
-        final_output["label_dic"] = dataset.label_dic
-
-        np.save(output_file, final_output)
+    np.save(output_file, final_output)
