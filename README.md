@@ -2,7 +2,7 @@
 
 This repository contains the implementation of applications with PPML-Omics from:
 
-**Juexiao Zhou, Siyuan Chen, et al. "PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data"**
+**Juexiao Zhou, Siyuan Chen, et al. "PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data"**
 
 ![fig1](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/fig1.x5stAy.png)
 
