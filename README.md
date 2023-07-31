@@ -73,7 +73,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
+  --mode MODE           default: SGD, DP, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
@@ -177,7 +177,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
+  --mode MODE           default: SGD, DP, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
@@ -287,7 +287,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
+  --mode MODE           default: SGD, DP, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
