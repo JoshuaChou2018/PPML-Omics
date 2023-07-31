@@ -4,9 +4,9 @@ This repository contains the implementation of applications with PPML-Omics from
 
 **Juexiao Zhou, Siyuan Chen, et al. "PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data"**
 
-![fig1](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/fig1.x5stAy.png)
+![Figure_1](https://cdn.jsdelivr.net/gh/JoshuaChou2018/oss@main/uPic/Qk4Pxs.Figure_1.png)
 
-**Fig. 1 PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data.**  a, Schematic overview of the relationships and interactions between distributed data owners, aggregator, attackers and techniques in the field of secure and private AI. b, Schematic overview of differnent methods, including centrally trained method, federated learning (FL), FL with differential privacy (DP), FL with DP and shuffling, and PPML-Omics. c, Illustration of 3 representative tasks, datasets and attacks of omic data in this paper for demonstrating the utility and privacy-preserving capability of PPML-Omics, including the 1) cancer classification with bulk RNA-seq, 2) clustering with scRNA-seq and 3) integration of morphology and gene expression with spatial transcriptomics.
+**Fig. 1 PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data.**  a, Schematic overview of the relationships and interactions between distributed data owners, aggregator, attackers and techniques in the field of secure and private AI. b, Schematic overview of different methods, including centrally trained method, federated learning (FL), FL with differential privacy (DP), and PPML-Omics. c, Illustration of 3 representative tasks, datasets and attacks of omic data in this paper for demonstrating the utility and privacy-preserving capability of PPML-Omics, including the 1) cancer classification with bulk RNA-seq, 2) clustering with scRNA-seq and 3) integration of morphology and gene expression with spatial transcriptomics.
 
 # Prerequisites
 
@@ -38,19 +38,26 @@ This repository contains the implementation of applications with PPML-Omics from
 
 ## Files Description
 
-`environment.yml`: creating an environment from the environment.yml file
-
 `/Attack`: source codes for attack experiments
 
 `/Application`: examples of applying PPML-Omics, users can eaisy modify based on it to meet their own requirements.
 
-## Environment Bulding
+## Environment Setup
 
 ```
-# notice you may need to change the prefix in the environment.yml according to your home path
-# several minutes for building the environment
-conda env create -f environment.yml
+conda create -n ppmlomics python=3.9
 conda activate ppmlomics
+conda install mamba -y
+mamba install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia -y
+mamba install seaborn -y
+mamba install matplotlib -y
+mamba install tqdm -y
+mamba install scikit-learn -y
+mamba install -c conda-forge scipy -y
+mamba install numpy=1.20.3 -y
+mamba install -c conda-forge umap-learn -y
+mamba install -c conda-forge openslide-python -y
+pip install tenseal
 ```
 
 ## Examples
@@ -92,7 +99,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, {SGD, SIGNSGD, DP, DPSIGNSGD}
+  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
@@ -196,7 +203,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, {SGD, SIGNSGD, DP, DPSIGNSGD}
+  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
@@ -306,7 +313,7 @@ optional arguments:
   --lr LR               default: 0.01
   --epsilon EPSILON     default: 100
   --delta DELTA         default: 0.5
-  --mode MODE           default: SGD, {SGD, SIGNSGD, DP, DPSIGNSGD}
+  --mode MODE           default: SGD, DP, DPShuffling, PPMLOmics
   --client CLIENT       default: 3
   --l2_clip L2_CLIP     default: 5
   --nprocess NPROCESS   default: 20
