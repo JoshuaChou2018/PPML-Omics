@@ -8,32 +8,6 @@ This repository contains the implementation of applications with PPML-Omics from
 
 **Fig. 1 PPML-Omics: a Privacy-Preserving federated Machine Learning method protects patients’ privacy from omic data.**  a, Schematic overview of the relationships and interactions between distributed data owners, aggregator, attackers and techniques in the field of secure and private AI. b, Schematic overview of different methods, including centrally trained method, federated learning (FL), FL with differential privacy (DP), and PPML-Omics. c, Illustration of 3 representative tasks, datasets and attacks of omic data in this paper for demonstrating the utility and privacy-preserving capability of PPML-Omics, including the 1) cancer classification with bulk RNA-seq, 2) clustering with scRNA-seq and 3) integration of morphology and gene expression with spatial transcriptomics.
 
-# Prerequisites
-
->  Important packages:
->
->  
->
->  \- python=3.9.7=hb7a2778_3_cpython
->
->  \- pytorch=1.9.1=cuda112py39h4e14dd4_3
->
->  \- torchvision=0.9.0=py39cuda112hc5182df_0_cuda
->
->  \- cudatoolkit=11.5.0=h36ae40a_9
->
->  \- cudnn=8.2.1.32=h86fa8c9_0
->
->  \- numpy=1.20.3=py39hf144106_0
->
->  \- pandas=1.3.2=py39h8c16a72_0
->
->  \- scikit-learn=0.24.2=py39ha9443f7_0
->
->  \- scipy=1.5.3=py39hf3f25e7_0
->
->  \- tqdm=4.62.2=pyhd3eb1b0_1
-
 # Usage
 
 ## Files Description
