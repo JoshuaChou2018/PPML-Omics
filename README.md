@@ -344,8 +344,15 @@ python 02.attackApp.py --mode DP --expname iDLG_attack_DP --epsilon 0.01
 
 If you use our work in your research, please cite our paper:
 
-**PPML-Omics: a Privacy-Preserving federated Machine Learning system protects patients’ privacy from omic data**
-
-Juexiao Zhou, Siyuan Chen, Yulian Wu, Haoyang Li, Bin Zhang, Longxi Zhou, Yan Hu, Zihang Xiang, Zhongxiao Li, Ningning Chen, Wenkai Han, Di Wang, Xin Gao
-
-bioRxiv 2022.03.23.485485; doi: https://doi.org/10.1101/2022.03.23.485485
+```
+@article{zhou2024ppml,
+  title={PPML-Omics: A privacy-preserving federated machine learning method protects patients’ privacy in omic data},
+  author={Zhou, Juexiao and Chen, Siyuan and Wu, Yulian and Li, Haoyang and Zhang, Bin and Zhou, Longxi and Hu, Yan and Xiang, Zihang and Li, Zhongxiao and Chen, Ningning and others},
+  journal={Science Advances},
+  volume={10},
+  number={5},
+  pages={eadh8601},
+  year={2024},
+  publisher={American Association for the Advancement of Science}
+}
+```
