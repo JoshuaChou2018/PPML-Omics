@@ -342,7 +342,7 @@ python 02.attackApp.py --mode DP --expname iDLG_attack_DP --epsilon 0.01
 
 # Citation
 
-If you use our work in your research, please cite our paper:
+If you find our work helpful, please cite our paper:
 
 ```
 @article{zhou2024ppml,
